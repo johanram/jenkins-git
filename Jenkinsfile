@@ -1,6 +1,20 @@
 pipeline {
-    agent any 
+    agent {
+        node {
+            label 'ConjurServer'
+        }
+    }
     stages {
+        stage('Install cybr-cli') {
+            steps {
+                sh '''
+                wget https://github.com/infamousjoeg/cybr-cli/releases/download/v1.0.1-release/cybr-cli_1.0.1-release_linux_amd64.tar.gz
+                tar -xzf cybr-cli_1.0.1-release_linux_amd64.tar.gz
+                chmod +x cybr
+                '''
+                sh './cybr version'
+            }
+        } 
         stage('Static Analysis') {
             steps {
                 echo 'Run the static analysis to the code' 
