@@ -5,44 +5,54 @@ pipeline {
         }
     }
     stages {
-        stage('Install cybr-cli') {
+        stage('Install the cybr-cli') {
             steps {
-                sh '''
-                wget https://github.com/infamousjoeg/cybr-cli/releases/download/v1.0.1-release/cybr-cli_1.0.1-release_linux_amd64.tar.gz
-                tar -xzf cybr-cli_1.0.1-release_linux_amd64.tar.gz
-                chmod +x cybr
-                '''
-                sh './cybr version'
-            }
-        } 
-        stage('Static Analysis') {
-            steps {
-                echo 'Run the static analysis to the code' 
+                script {
+                    def CONJUR_CLI_DOWNLOAD_URL = params.CONJUR_CLI_DOWNLOAD_URL
+                    def CONJUR_CLI_FILE_NAME = params.CONJUR_CLI_FILE_NAME
+                    sh "wget ${CONJUR_CLI_DOWNLOAD_URL}"
+                    sh "tar -xzf ${CONJUR_CLI_FILE_NAME}"
+                    sh "chmod +x cybr"
+                }
+                sh "./cybr version"
             }
         }
-        stage('Compile') {
+        stage('Authenticate with the cybr-cli') {
             steps {
-                echo 'Compile the source code' 
+                withCredentials([
+                    conjurSecretCredential(credentialsId: 'CONJUR_ADMIN_USERNAME', variable: 'CONJUR_AUTHN_LOGIN'),
+                    conjurSecretCredential(credentialsId: 'CONJUR_ADMIN_PASSWORD', variable: 'CONJUR_AUTHN_API_KEY')
+                ]) {
+                    script {
+                        def CONJUR_APPLIANCE_URL = params.CONJUR_APPLIANCE_URL
+                        def CONJUR_ACCOUNT = params.CONJUR_ACCOUNT
+                        sh "./cybr conjur logon-non-interactive"
+                    }
+                }
             }
         }
-        stage('Security Check') {
+        stage('Check Conjur authentication') {
             steps {
-                echo 'Run the security check against the application' 
+                withCredentials([
+                    conjurSecretCredential(credentialsId: 'CONJUR_ADMIN_USERNAME', variable: 'CONJUR_AUTHN_LOGIN'),
+                    conjurSecretCredential(credentialsId: 'CONJUR_ADMIN_PASSWORD', variable: 'CONJUR_AUTHN_API_KEY')
+                ]) {
+                    script {
+                        sh "./cybr conjur whoami"
+                    }
+                }
             }
         }
-        stage('Run Unit Tests') {
+        stage('List Conjur resources') {
             steps {
-                echo 'Run unit tests from the source code' 
-            }
-        }
-        stage('Run Integration Tests') {
-            steps {
-                echo 'Run only crucial integration tests from the source code' 
-            }
-        }
-        stage('Publish Artifacts') {
-            steps {
-                echo 'Save the assemblies generated from the compilation' 
+                withCredentials([
+                    conjurSecretCredential(credentialsId: 'CONJUR_ADMIN_USERNAME', variable: 'CONJUR_AUTHN_LOGIN'),
+                    conjurSecretCredential(credentialsId: 'CONJUR_ADMIN_PASSWORD', variable: 'CONJUR_AUTHN_API_KEY')
+                ]) {
+                    script {
+                        sh "./cybr conjur list"
+                    }
+                }
             }
         }
     }
