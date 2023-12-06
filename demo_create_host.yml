@@ -1,0 +1,4 @@
+- !host
+  id: Vault01/authn/awx-test1
+  annotations:
+    description: Ansible AWX Server

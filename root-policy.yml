@@ -1,0 +1,20 @@
+---
+# To make sure the user can create hosts on branch `jenkins`
+- !policy
+  id: jenkins
+  owner: !group Vault/authn/Conjur_Jenkins_Linux_O-admins
+  body:
+    - !user admin
+    - !layer consumers
+
+# To make sure the user can connect hosts to secrets
+- !grant
+  role: !group Vault/authn/Conjur_Jenkins_Linux_O-admins
+  members:
+    - !user admin@jenkins
+
+# Ensure Jenkins/consumer hosts access Vault secrets
+- !grant
+  role: !group Vault/authn/Conjur_Jenkins_Linux_O/delegation/consumers
+  members:
+    - !layer jenkins/consumers

@@ -1,0 +1,10 @@
+# Trigger 1
+---
+
+- !host jenkins/server1
+
+# Assign hosts to layers
+- !grant
+  role: !layer jenkins/consumers
+  members:
+    - !host jenkins/server1

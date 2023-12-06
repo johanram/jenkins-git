@@ -1,0 +1,23 @@
+- !host
+  id: Vault/authn/awx-test1
+  annotations:
+    description: Ansible AWX Server
+
+
+- !policy
+  id: Vault/authn
+  body:
+  - !layer AWX
+ 
+  - !grant
+    role: !group PRD-AWX-Team1/delegation/consumers
+    member: !layer AWX
+
+  - !grant
+    role: !layer AWX
+    member: !host awx-test1
+   
+  - !permit
+    role: !host awx-test1
+    privileges: [ read, execute ]
+    resource: !layer AWX

@@ -1,0 +1,32 @@
+---
+
+#-----------------------------------------------------------
+# POLICY BRANCH: root
+# LOAD SYNTAX (v6.x): conjur policy load --replace root <file>.yml
+# LOAD SYNTAX (v7.x): conjur policy replace -f <file>.yml -b root
+#-----------------------------------------------------------
+
+# =================================================
+# SYNCHRONIZER ROOT POLICY
+# Creates a Synchronizer compatible policy with variables.
+# Useful for pre-creating secrets ahead of Vault/Conjur synchronizer
+# THIS POLICY MUST BE LOADED FIRST when bulk-loaded with other root policies.
+# =================================================
+
+- !group Vault-admins
+- !host Sync_W2K16-COMPSRV
+- !grant
+  role: !group Vault-admins
+  members: !host Sync_W2K16-COMPSRV
+
+#########################
+# Vault RBAC
+# - updates vault policy with LOB admin group
+- !policy
+  id: Vault
+  owner: !group Vault-admins
+
+# END SYNCHRONIZER-ROOT-POLICY
+
+
+ 
